@@ -1,27 +1,25 @@
 using Bloggie.Web.Data;
 using Bloggie.Web.Models.Domain;
+using Bloggie.Web.Repositorties;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bloggie.Web.Pages.Admin.Blogs
 {
     public class ListModel : PageModel
     {
-        private readonly BloggieDbContext bloggieDbContext;
+        private readonly IBlogPostRepository blogPostRepository;
 
         public List<BlogPost> BlogPosts { get; set; }
 
-        public ListModel(BloggieDbContext bloggieDbContext)
+        public ListModel(IBlogPostRepository blogPostRepository)
         {
-            this.bloggieDbContext = bloggieDbContext;
-
+            this.blogPostRepository = blogPostRepository;
         }
-     
-        
 
-        public void OnGet()
-        {
-           BlogPosts = bloggieDbContext.BlogPosts.ToList();
-        }
+
+
+        public async Task OnGet() => BlogPosts = (await blogPostRepository.GetAllAsync())?.ToList();
     }
 }

@@ -1,5 +1,6 @@
 using Bloggie.Web.Data;
 using Bloggie.Web.Models.Domain;
+using Bloggie.Web.Repositorties;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -8,45 +9,47 @@ namespace Bloggie.Web.Pages.Admin.Blogs
     public class EditModel : PageModel
     {
         private readonly BloggieDbContext bloggieDbContext;
+        private readonly IBlogPostRepository blogPostRepository;
 
         [BindProperty]
         public BlogPost BlogPost { get; set; }
 
-        public EditModel(BloggieDbContext bloggieDbContext)
+        public EditModel(IBlogPostRepository blogPostRepository)
         {
-            this.bloggieDbContext = bloggieDbContext;
+            this.blogPostRepository = blogPostRepository;
         }
-        public void OnGet(Guid id)
+        public async Task OnGet(Guid id)
         {
-            BlogPost = bloggieDbContext.BlogPosts.Find(id);
+            BlogPost = await blogPostRepository.GetAsync(id);
 
 
 
         }
 
-        public IActionResult OnPost()
+       
+
+        public async Task<IActionResult> OnPostEdit()
         {
-            var existingBlogPost = bloggieDbContext.BlogPosts.Find(BlogPost.id);
-           
-            if (existingBlogPost != null)
-            {
-                existingBlogPost.Heading = BlogPost.Heading;
-                existingBlogPost.PageTitle = BlogPost.PageTitle;
-                existingBlogPost.Content = BlogPost.Content;
-                existingBlogPost.Heading = BlogPost.Heading;
-                existingBlogPost.ShortDescription = BlogPost.ShortDescription;
-                existingBlogPost.FeturedImageUrl = BlogPost.FeturedImageUrl;
-                existingBlogPost.UrlHandle = BlogPost.UrlHandle;
-                existingBlogPost.PublishedDate = BlogPost.PublishedDate;
-                existingBlogPost.Author = BlogPost.Author;
-                existingBlogPost.Visible = BlogPost.Visible;
-
-            }
-
-            bloggieDbContext.SaveChanges();
+            await blogPostRepository.UpdateAsync(BlogPost);
             return RedirectToPage("/Admin/Blogs/List");
         }
-        
+
+        public async Task<IActionResult> OnPostDelete()
+        {
+
+            var deleted = await blogPostRepository.DeleteAsync(BlogPost.id);
+            if (deleted)
+            {
+                return RedirectToPage("/Admin/Blogs/List");
+            }
+
+              
+            
+
+            return Page();
+        }
+
+
     }
 }
 
